@@ -1,0 +1,20 @@
+header {
+#include <cstdlib>
+}
+
+mode ONE_AND_ONLY
+{
+	<<EOF>>    => QUEX_TKN_TERMINATION;
+	
+	[ \t]+ {}
+	[\n]+		=> QUEX_TKN_EOL;
+	","			=> QUEX_TKN_COMMA;
+	"add"		=> QUEX_TKN_OP_ADD;
+	"sub"		=> QUEX_TKN_OP_SUB;
+	"mov"		=> QUEX_TKN_OP_MOVE;
+	"mul"		=> QUEX_TKN_OP_MULTIPLY;
+	"div"		=> QUEX_TKN_OP_DIVIDE;
+	[0-9]+		=> QUEX_TKN_NUMBER(Lexeme);
+	[_a-zA-Z]+	=> QUEX_TKN_IDENTIFIER(Lexeme);
+	\"([^\"\\\\]|\\\\.)*\" => QUEX_TKN_STRING(LexemeBegin+1, LexemeEnd-1);
+}
