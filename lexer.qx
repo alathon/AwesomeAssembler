@@ -10,11 +10,15 @@ mode ONE_AND_ONLY
 	[\n]+		=> QUEX_TKN_EOL;
 	","			=> QUEX_TKN_COMMA;
 	"add"		=> QUEX_TKN_OP_ADD;
+	"addi"		=> QUEX_TKN_OP_ADDI;
 	"sub"		=> QUEX_TKN_OP_SUB;
-	"mov"		=> QUEX_TKN_OP_MOVE;
+	"subi"		=> QUEX_TKN_OP_SUBI;
+	"assign"	=> QUEX_TKN_OP_ASSIGN;
 	"mul"		=> QUEX_TKN_OP_MULTIPLY;
+	"muli"		=> QUEX_TKN_OP_MULTIPLYI;
 	"div"		=> QUEX_TKN_OP_DIVIDE;
+	"divi"		=> QUEX_TKN_OP_DIVIDEI;
 	[0-9]+		=> QUEX_TKN_NUMBER(Lexeme);
-	[_a-zA-Z]+	=> QUEX_TKN_IDENTIFIER(Lexeme);
+	[_a-zA-Z0-9]+	=> QUEX_TKN_IDENTIFIER(Lexeme);
 	\"([^\"\\\\]|\\\\.)*\" => QUEX_TKN_STRING(LexemeBegin+1, LexemeEnd-1);
 }

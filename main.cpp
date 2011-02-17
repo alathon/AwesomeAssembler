@@ -13,20 +13,24 @@ enum ParserState { STATE_INST, STATE_ARG, STATE_COMMA, STATE_EOL };
 
 class Instruction {
 	private:
-		int argCount;
 		vector<string> args;
 
-	public:
-		Instruction() {
-			argCount=0;
+		bool validateToken(int ttype) {
+			int realType = argTypes.at(args.size());
+			return (realType == ttype);
 		}
-		
-		string getName() { return "Unnamed"; }
 
-		int desiredArgs() { return 2; };
+	public:
+		virtual string getName() { }
+		virtual int desiredArgs() { }
+		vector<int> argTypes;
 
-		void receiveArg(const char *s) {
-			args.push_back(string(s));
+		void receiveArg(int tokenType, const char *s) {
+			if(!validateToken(tokenType))
+				cout << "Bad argument type!" << endl;
+				exit(0);
+			string n(s);
+			args.push_back(n);
 		}
 
 		string binaryRep() {
@@ -34,24 +38,113 @@ class Instruction {
 		}
 };
 
+// Format:
+// addi [register] [any]
+class AddInPlaceOp: public Instruction {
+	public:
+		AddInPlaceOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "addi"; }
+		int desiredArgs() { return 2; }
+};
+
+// Format:
+// add [register] [any] [any]
 class AddOp: public Instruction {
-	public: string getName() { return "add"; }
+	public:
+		AddOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "add"; }
+		int desiredArgs() { return 3; }
+
+
+};
+
+class SubInPlaceOp: public Instruction {
+	public:
+		SubInPlaceOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "subi"; }
+		int desiredArgs() { return 2; }
 };
 
 class SubOp: public Instruction {
-	public: string getName() { return "sub"; }
+	public:
+		SubOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "sub"; }
+		int desiredArgs() { return 3; }
+};
+
+class MulInPlaceOp: public Instruction {
+	public:
+		MulInPlaceOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "muli"; }
+		int desiredArgs() { return 2; }
 };
 
 class MulOp: public Instruction {
-	public: string getName() { return "mul"; }
+	public:
+		MulOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "mul"; }
+		int desiredArgs() { return 3; }
+};
+
+class DivInPlaceOp: public Instruction {
+	public:
+		DivInPlaceOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "divi"; }
+		int desiredArgs() { return 2; }
 };
 
 class DivOp: public Instruction {
-	public: string getName() { return "div"; }
+	public:
+		DivOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "div"; }
+		int desiredArgs() { return 3; }
 };
 
-class MovOp: public Instruction {
-	public: string getName() { return "mov"; }
+class AssignOp: public Instruction {
+	public:
+		AssignOp() {
+			argTypes.push_back(QUEX_TKN_IDENTIFIER);
+			argTypes.push_back(-1);
+		}
+
+		string getName() { return "assign"; }
+		int desiredArgs() { return 2; }
 };
 
 class Parser {
@@ -73,7 +166,9 @@ class Parser {
 			state = STATE_INST;
 			Instruction* cur_ins;
 
-			for(int i=0; i < tokens.size(); i++) {
+			// size() - 1 to leave out the termination token at
+			// the end of the file.
+			for(int i=0; i < tokens.size()-1; i++) {
 				quex::Token* token = tokens[i];
 				int tID = token->type_id();
 				cout << "Token: ";
@@ -81,10 +176,12 @@ class Parser {
 					cout << string(*token) << endl;
 					// To get only the text contained by token:
 					//cout << token->get_text().c_str() << endl;
-				else if(tID == QUEX_TKN_NUMBER)
-					cout << "NUMBER: " << token->get_number() << endl;
+				else if(tID == QUEX_TKN_NUMBER) {
+					cout << string(*token) << endl; }
 				else
 					cout << token->type_id_name() << endl;
+				
+//				continue;
 
 				switch(state) {
 					case STATE_INST:
@@ -92,20 +189,32 @@ class Parser {
 							case QUEX_TKN_OP_ADD:
 								cur_ins = new AddOp();
 								break;
+							case QUEX_TKN_OP_ADDI:
+								cur_ins = new AddInPlaceOp();
+								break;
 							case QUEX_TKN_OP_SUB:
 								cur_ins = new SubOp();
 								break;
-							case QUEX_TKN_OP_MOVE:
-								cur_ins = new MovOp();
+							case QUEX_TKN_OP_SUBI:
+								cur_ins = new SubInPlaceOp();
+								break;
+							case QUEX_TKN_OP_ASSIGN:
+								cur_ins = new AssignOp();
 								break;
 							case QUEX_TKN_OP_MULTIPLY:
 								cur_ins = new MulOp();
 								break;
+							case QUEX_TKN_OP_MULTIPLYI:
+								cur_ins = new MulInPlaceOp();
+								break;
 							case QUEX_TKN_OP_DIVIDE:
 								cur_ins = new DivOp();
 								break;
+							case QUEX_TKN_OP_DIVIDEI:
+								cur_ins = new DivInPlaceOp();
+								break;
 							default:
-								cout << "AAAH INVALID STATE AHHHHH!" << endl;
+								printf("State_Inst: Bad instruction %i", tID);
 								exit(0);
 						}
 						count = cur_ins->desiredArgs();
@@ -116,18 +225,15 @@ class Parser {
 						switch(tID) {
 							case QUEX_TKN_IDENTIFIER:
 							case QUEX_TKN_STRING:
-								cur_ins->receiveArg((const char*)token->get_text().c_str());
+								cur_ins->receiveArg(tID, (const char*)token->get_text().c_str());
 								break;
 
 							case QUEX_TKN_NUMBER:
-								//out << token->get_number();
-								//const string& tmp = out.str();
-								//const char* cstr = tmp.c_str();
-								cur_ins->receiveArg((const char*)
+								cur_ins->receiveArg(tID, (const char*)
 										    token->get_text().c_str());
 								break;
 							default:
-								cout << "INVALID TOKEN JKLASJK" << endl;
+								cout << "State_Arg: Bad argument token type" << endl;
 								exit(0);
 						}
 
@@ -139,7 +245,7 @@ class Parser {
 
 					case STATE_COMMA:
 						if(! (tID == QUEX_TKN_COMMA)) {
-							cout << "AAAAAH INVALID STATE OMGOMMGOMG!" << endl;
+							cout << "State_Comma: Expecting comma, received other token." << endl;
 							exit(0);
 						}
 						
@@ -148,11 +254,13 @@ class Parser {
 
 					case STATE_EOL:
 						if(! (tID == QUEX_TKN_EOL)) {
-							cout << "AAH OMG WE WANT EOL!!!!" << endl;
+							cout << "State_Eol: Expecting EOL, received token." << endl;
 							exit(0);
 						}
 						
 						instructions.push_back(cur_ins);
+						char testbuffer [30];
+						printf("Pushed new instruction. Size = %i\n", instructions.size());
 						state = STATE_INST;
 						break;
 
@@ -183,15 +291,13 @@ int main(int argc, char** argv)
 	} while( token_p->type_id() != QUEX_TKN_TERMINATION );
 	
 	Parser parser(tokens);
-	cout << "ALmost there" << endl;
 	parser.init();
-	cout << "Got here" << endl;
 	vector<Instruction*> inst = parser.getInst();
-	cout << "Here" << endl;
 	cout << "Size is " << inst.size() << endl;
 	for(int i=0; i < inst.size(); i++) {
 		cout << inst[i]->getName() << endl;
 	}
+
 	return 0;
 }
 

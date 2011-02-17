@@ -1,5 +1,1 @@
-add "Yeehaw", register_one
-add 1, register_two
-mul 5, register_two
-mul 5,
-
+add nice,5,2
