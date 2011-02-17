@@ -15,6 +15,6 @@ mode ONE_AND_ONLY
 	"mul"		=> QUEX_TKN_OP_MULTIPLY;
 	"div"		=> QUEX_TKN_OP_DIVIDE;
 	[0-9]+		=> QUEX_TKN_NUMBER(Lexeme);
-	[_a-zA-Z]+	=> QUEX_TKN_IDENTIFIER(Lexeme);
+	[_a-zA-Z0-9]+	=> QUEX_TKN_IDENTIFIER(Lexeme);
 	\"([^\"\\\\]|\\\\.)*\" => QUEX_TKN_STRING(LexemeBegin+1, LexemeEnd-1);
 }

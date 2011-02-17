@@ -11,6 +11,12 @@ using namespace std;
 
 enum ParserState { STATE_INST, STATE_ARG, STATE_COMMA, STATE_EOL };
 
+struct Token {
+	int tokenID;
+	string value;
+	Token (int i, const char *c) : tokenID(i), value(string(c)) {}
+};
+
 class Instruction {
 	private:
 		int argCount;
@@ -68,35 +74,25 @@ class Parser {
 	private:
 		ParserState state;
 		int count; // Used to keep track of how many arguments we've received.
-		vector<quex::Token*> tokens;
+		vector<Token*> tokens;
 		vector<Instruction*> instructions;
 
 	public:
-		Parser(vector<quex::Token*> t) {
-			count=0;
-			tokens = t;
+		Parser(vector<Token*> t) : count(0), tokens(t) {
 		}
 
 		vector<Instruction*> getInst() { return this->instructions; }
 
 		void init() {
+
 			state = STATE_INST;
 			Instruction* cur_ins;
 
-			vector<quex::Token*>::iterator itr;
-			for( itr = tokens.begin(); itr != tokens.end(); ++itr) {
-				quex::Token* token = *itr;
-				int tID = token->type_id();
-				cout << "Token: ";
-				if(tID == QUEX_TKN_IDENTIFIER || tID == QUEX_TKN_STRING)
-					cout << string(*token) << endl;
-					// To get only the text contained by token:
-					//cout << token->get_text().c_str() << endl;
-				else if(tID == QUEX_TKN_NUMBER)
-					cout << "NUMBER: " << string(*token) << endl;
-				else
-					cout << token->type_id_name() << endl;
-				continue;
+			vector<Token*>::iterator itr;
+			for( itr = tokens.begin(); itr != tokens.end()-1; ++itr) {
+				Token *token = *itr;
+				int tID = token->tokenID;
+				printf("Token [%i]: %s\n", tID, token->value.c_str());
 
 				switch(state) {
 					case STATE_INST:
@@ -117,7 +113,7 @@ class Parser {
 								cur_ins = new DivOp();
 								break;
 							default:
-								cout << "AAAH INVALID STATE AHHHHH!" << endl;
+								cout << "Expected instruction, got something else" << endl;
 								exit(0);
 						}
 						count = cur_ins->desiredArgs();
@@ -128,18 +124,11 @@ class Parser {
 						switch(tID) {
 							case QUEX_TKN_IDENTIFIER:
 							case QUEX_TKN_STRING:
-								cur_ins->receiveArg((const char*)token->get_text().c_str());
-								break;
-
 							case QUEX_TKN_NUMBER:
-								//out << token->get_number();
-								//const string& tmp = out.str();
-								//const char* cstr = tmp.c_str();
-								cur_ins->receiveArg((const char*)
-										    token->get_text().c_str());
+								cur_ins->receiveArg((const char*)token->value.c_str());
 								break;
 							default:
-								cout << "INVALID TOKEN JKLASJK" << endl;
+								cout << "Expected identifier, string or number, got something else" << endl;
 								exit(0);
 						}
 
@@ -151,7 +140,7 @@ class Parser {
 
 					case STATE_COMMA:
 						if(! (tID == QUEX_TKN_COMMA)) {
-							cout << "AAAAAH INVALID STATE OMGOMMGOMG!" << endl;
+							cout << "Expected QUEX_Tkn_comma, got something else" << endl;
 							exit(0);
 						}
 						
@@ -160,7 +149,7 @@ class Parser {
 
 					case STATE_EOL:
 						if(! (tID == QUEX_TKN_EOL)) {
-							cout << "AAH OMG WE WANT EOL!!!!" << endl;
+							cout << "Expected QUEX_TKN_EOL, got something else" << endl;
 							exit(0);
 						}
 						
@@ -188,11 +177,11 @@ int main(int argc, char** argv)
 {
 	quex::Token* token_p = 0x0;
 	quex::lexer qlex("example.txt");
-	vector<quex::Token*> tokens;
+	vector<Token*> tokens;
 	do {
 		qlex.receive(&token_p);
-		cout << "Token received: " << token_p->type_id_name() << endl;
-		tokens.push_back(token_p);
+		Token *t = new Token((int)token_p->type_id(), (const char*) token_p->get_text().c_str());
+		tokens.push_back(t);
 	} while( token_p->type_id() != QUEX_TKN_TERMINATION );
 
 	Parser parser(tokens);
@@ -202,6 +191,7 @@ int main(int argc, char** argv)
 	for(int i=0; i < inst.size(); i++) {
 		cout << inst[i]->getName() << endl;
 	}
+
 	return 0;
 }
 

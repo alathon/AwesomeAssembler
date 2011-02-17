@@ -1,3 +1,18 @@
-addi reg1, 5
-div reg1, 2, 5
-sub reg1, reg2, reg
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
+add "Yeehaw", register_one
+add 1, register_two
+mul 5, register_two
